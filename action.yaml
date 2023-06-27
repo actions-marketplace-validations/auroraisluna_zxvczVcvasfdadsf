@@ -11,17 +11,14 @@ inputs:
     description: 'The PR number to run the action on'
     required: true
   github-token:
-    description: 'GitHub access token'
-    default: '${{ github.token }}'
+    description: 'GitHub access token (required for adding labels)'
+    default: '${{ secrets.GITHUB_TOKEN }}'
   label-pass:
-    description: 'The label to add to the PR if the QA check passes'
-    required: true
- 
-outputs:
-  qa-result:
-    description: 'The result of the QA check (pass/fail)'
-  qa-fail:
-    description: 'Shows if the QA check failed and why'
+    description: 'The label to add to the PR if the QA check passes (optional)'
+  label-fail:
+    description: 'The label to add to the PR if the QA check fails (optional)'
+  ready-for-review-label:
+    description: 'The label to add to the PR if the QA check passes (optional)'
 runs:
   using: 'node16'
   main: 'dist/index.mjs'
