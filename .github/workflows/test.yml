@@ -10,6 +10,6 @@ jobs:
       - name: PR QA Comments Helper
         uses: auroraisluna/zxvczVcvasfdadsf@tt
         with:
-          repo-owner: ${{ github.event.repository.owner.login }}}
+          repo-owner: ${{ github.event.repository.owner.login }}
           repo-name: ${{ github.event.repository.name }}
           pr-number: ${{ github.event.issue.number }}
