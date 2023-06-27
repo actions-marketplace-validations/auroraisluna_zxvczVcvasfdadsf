@@ -6,23 +6,39 @@ import { Octokit } from "@octokit/rest";
 import core from '@actions/core';
 
 //Function to fetch the comments from a PR
-async function fetchComments(owner, repo, issue_number) {
+async function fetchComments(octo, owner, repo, issue_number) {
 
-    const comments = await octokit.issues.listComments({
-        owner: owner,
-        repo: repo,
-        issue_number: issue_number
-    });
+    try {
 
-    return comments.data;
+        const comments = await octo.issues.listComments({
+            owner: owner,
+            repo: repo,
+            issue_number: issue_number
+        });
+
+        return comments.data;
+
+    } catch (error) {
+
+        throw new Error(error);
+
+    }
 }
 
 //Function to retrieve the last comment from the PR
-async function getLastComment(owner, repo, issue_number) {
+async function getLastComment(octo, owner, repo, issue_number) {
 
-    const comments = await fetchComments(owner, repo, issue_number);
+    try {
 
-    return comments[comments.length - 1];
+        const comments = await fetchComments(octo, owner, repo, issue_number);
+
+        return comments[comments.length - 1];
+
+    } catch (error) {
+
+        throw new Error(error);
+
+    }
 
 }
 
@@ -77,7 +93,9 @@ try {
 
     console.log(`Fetching comments from ${repoOwner}/${repoName} PR#${prNumber}`);
 
-    const comment = await getLastComment(repoOwner, repoName, prNumber);
+    const comment = await getLastComment(octokit, repoOwner, repoName, prNumber);
+
+    console.log(`Last comment by ${comment.user.login}`);
 
     if (!isQAcomment(comment)) return console.log(`Not a QA comment`);
     if (!hasTestingResults(comment)) return console.log(`No testing results found`);
