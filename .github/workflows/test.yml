@@ -6,6 +6,8 @@ jobs:
     name: PR comment (for QA)
     if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: PR QA Comments Helper
         uses: auroraisluna/zxvczVcvasfdadsf@tt7
