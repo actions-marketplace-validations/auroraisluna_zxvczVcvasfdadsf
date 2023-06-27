@@ -10,6 +10,12 @@ inputs:
   pr-number:
     description: 'The PR number to run the action on'
     required: true
+  github-token:
+    description: 'The GitHub token to use for authentication'
+    required: true
+  label-pass:
+    description: 'The label to add to the PR if the QA check passes'
+    required: true
  
 outputs:
   qa-result:
