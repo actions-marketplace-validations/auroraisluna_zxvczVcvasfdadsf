@@ -11055,8 +11055,9 @@ async function fetchComments(octo, owner, repo, issue_number) {
         _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error);
         throw new Error(error);
 
-    }
-}
+    };
+
+};
 
 //Function to retrieve the last comment from the PR
 async function getLastComment(octo, owner, repo, issue_number) {
@@ -11072,9 +11073,22 @@ async function getLastComment(octo, owner, repo, issue_number) {
         _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error);
         throw new Error(error);
 
-    }
+    };
 
-}
+};
+
+//Function to check if the comment contains the straing "Ready to Test", "Ready for Testing", "Ready for QA", "Ready for Quality Assurance", "Ready for Quality Assurance Testing", "RTT"
+function isRTTComment(comment) {
+
+    const commentBody = comment.body;
+
+    if (commentBody.includes("Ready to Test") || commentBody.includes("Ready for Testing") || commentBody.includes("Ready for QA") || commentBody.includes("Ready for Quality Assurance") || commentBody.includes("Ready for Quality Assurance Testing") || commentBody.includes("RTT")) {
+        return true;
+    } else {
+        return false;
+    };
+
+};
 
 //Function to check if the comment contains the string "QA Report" or "Quality Assurance Tester Report" or "Quality Assurance Trainee Report"
 function isQAcomment(comment) {
@@ -11085,9 +11099,9 @@ function isQAcomment(comment) {
         return true;
     } else {
         return false;
-    }
+    };
 
-}
+};
 
 //Function to check if the comment contains the string "Testing Results"
 function hasTestingResults(comment) {
@@ -11098,9 +11112,9 @@ function hasTestingResults(comment) {
         return true;
     } else {
         return false;
-    }
+    };
 
-}
+};
 
 //Function to check if the comment contains the string "Passed" after "Testing Results"
 function isPassed(comment) {
@@ -11111,57 +11125,133 @@ function isPassed(comment) {
         return false;
     } else if (commentBody.includes("Passed") || commentBody.includes("passed")) {
         return true;
-    }
+    };
 
-}
+};
 
+//Main 'function'
 try {
 
-    console.log(`Starting QA Report Action V0.8`)
+    //Variable so we can check if the comment is either QA or RTT and if not then we can fail the action
+    let isValidComment = false;
 
+    //Get variables from the workflow
     const token = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token');
+    const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-owner');
+    const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-name');
+    const prNumber = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('pr-number');
+    const labelPass = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('label-pass');
+    const labelFail = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('label-fail');
+    const labelRTT = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('label-rtt');
 
+    console.log(`Starting QA Report Action V0.10`);
+
+    //Create an Octokit instance and authenticate 
     const octokit = new _octokit_rest__WEBPACK_IMPORTED_MODULE_2__.Octokit({
         auth: token
     });
   
-    const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-owner');
-    const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-name');
-    const prNumber = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('pr-number');
-
     console.log(`Fetching comments from ${repoOwner}/${repoName} PR#${prNumber}`);
 
+    //Get the last comment from the PR
     const comment = await getLastComment(octokit, repoOwner, repoName, prNumber);
 
     console.log(`Last comment by ${comment.user.login}`);
 
-    if (!isQAcomment(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`Not a QA comment`);
-    if (!hasTestingResults(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`No testing results found`);
+    //Check if the comment is either QA or RTT
+    if (isQAcomment(comment)) isValidComment = true; //Set the isValidComment to true so we can pass the action
 
-    if (!isPassed(comment)) {
-        console.log(`QA Reported as NOT PASSED`);
-        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`QA Reported as NOT PASSED`);
-    } else {
+    if (isRTTComment(comment)) {
 
-        //Now we can pass the action
-        console.log(`QA Reported as PASSED`);
-        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("QA-Report", "PASSED");
+        isValidComment = true; //Set the isValidComment to true so we can pass the action
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("QA-Report", "RTT"); 
 
-        //Now we want to add a label to the PR
-        const addLabel = await octokit.issues.addLabels({
-            owner: repoOwner,
-            repo: repoName,
-            issue_number: prNumber,
-            labels: [_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('label-pass')]
-        });
+        //Now we want to add a label to the PR if we have the label-rtt input
+        if (labelRTT) {
 
-        console.log(`Label added to PR#${prNumber}`);
+            await octokit.issues.addLabels({
+                owner: repoOwner,
+                repo: repoName,
+                issue_number: prNumber,
+                labels: [labelRTT]
+            });
 
-    }
+            console.log(`RTT label added to PR#${prNumber}`);
+            console.log(`Action completed successfully`);
 
+            //Lock
+            isValidComment = false;
+
+        };
+
+    };
+
+    //Check if the comment is either QA or RTT and if not then we can fail the action
+    if (!isValidComment) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`Not a QA comment`);
+
+    //Comment is not RTT so we can check if it is QA
+    if (!hasTestingResults(comment) && isValidComment) {
+
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`No testing results found`);
+     
+    //Comment is QA so we can check if it has testing results (if nots RTT'ed)
+    } else if (hasTestingResults(comment) && isValidComment) {
+
+        //Check if the comment has passed or not
+        if (!isPassed(comment)) {
+
+            //Now we can fail the action
+            console.log(`QA Reported as NOT PASSED`);
+            _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`QA Reported as NOT PASSED`);
+
+            //Now we want to add a label to the PR if we have the label-fail input
+            if (labelFail) {
+
+                await octokit.issues.addLabels({
+                    owner: repoOwner,
+                    repo: repoName,
+                    issue_number: prNumber,
+                    labels: [labelFail]
+                });
+
+                console.log(`Fail label added to PR#${prNumber}`);
+                console.log(`Action completed successfully`);
+
+            };
+
+        //Comment has passed
+        } else {
+
+            //Now we can pass the action
+            console.log(`QA Reported as PASSED`);
+            _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("QA-Report", "PASSED");
+
+            //Now we want to add a label to the PR if we have the label-pass input
+            if (labelPass) {
+
+                //Now we want to add a label to the PR if we have the label-pass input
+                await octokit.issues.addLabels({
+                    owner: repoOwner,
+                    repo: repoName,
+                    issue_number: prNumber,
+                    labels: [labelPass]
+                });
+
+                console.log(`Pass label added to PR#${prNumber}`);
+                console.log(`Action completed successfully`);
+
+            };
+
+        };
+
+    };
+
+//Catch any errors during the action and fail the action
 } catch (error) {
+
   _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error.message);
-}
+
+};
 
 __webpack_async_result__();
 } catch(e) { __webpack_async_result__(e); } }, 1);

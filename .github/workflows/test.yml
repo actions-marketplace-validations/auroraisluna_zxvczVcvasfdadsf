@@ -10,7 +10,7 @@ jobs:
       issues: write
     steps:
       - name: PR QA Comments Helper
-        uses: auroraisluna/zxvczVcvasfdadsf@tt9
+        uses: auroraisluna/zxvczVcvasfdadsf@tt10
         with:
           repo-owner: ${{ github.event.repository.owner.login }}
           repo-name: ${{ github.event.repository.name }}

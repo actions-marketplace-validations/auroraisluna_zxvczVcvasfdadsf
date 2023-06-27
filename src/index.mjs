@@ -112,7 +112,7 @@ try {
     const labelFail = core.getInput('label-fail');
     const labelRTT = core.getInput('label-rtt');
 
-    console.log(`Starting QA Report Action V0.9`);
+    console.log(`Starting QA Report Action V0.10`);
 
     //Create an Octokit instance and authenticate 
     const octokit = new Octokit({
