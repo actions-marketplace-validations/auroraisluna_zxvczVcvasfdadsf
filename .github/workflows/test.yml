@@ -1,0 +1,15 @@
+on: issue_comment
+
+jobs:
+  pr_commented:
+    # This job only runs for pull request comments
+    name: PR comment (for QA)
+    if: ${{ github.event.issue.pull_request }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR QA Comments Helper
+        uses: auroraisluna/pr-qa-comments-helper@test
+        with:
+          repo-owner: ${{ github.event.repository.owner.login }}}
+          repo-name: ${{ github.event.repository.name }}
+          pr-number: ${{ github.event.issue.number }}

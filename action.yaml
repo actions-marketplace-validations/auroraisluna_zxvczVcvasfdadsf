@@ -1,0 +1,21 @@
+name: 'PR QA Comments Helper'
+description: 'A GitHub Action to help with PR QA Comments and run actions on PRs'
+inputs:
+  repo-owner: 
+    description: 'The owner of the repo to run the action on'
+    required: true
+  repo-name:
+    description: 'The name of the repo to run the action on'
+    required: true
+  pr-number:
+    description: 'The PR number to run the action on'
+    required: true
+ 
+outputs:
+  qa-result:
+    description: 'The result of the QA check (pass/fail)'
+  qa-fail:
+    description: 'Shows if the QA check failed and why'
+runs:
+  using: 'node16'
+  main: 'dist/index.mjs'
