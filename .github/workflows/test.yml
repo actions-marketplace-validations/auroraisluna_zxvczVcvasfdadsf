@@ -8,8 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: PR QA Comments Helper
-        uses: auroraisluna/zxvczVcvasfdadsf@tt2
+        uses: auroraisluna/zxvczVcvasfdadsf@tt3
         with:
           repo-owner: ${{ github.event.repository.owner.login }}
           repo-name: ${{ github.event.repository.name }}
           pr-number: ${{ github.event.issue.number }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          label-pass: 'QA-Passed'

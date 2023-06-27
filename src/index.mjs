@@ -5,8 +5,6 @@ import 'dotenv/config'
 import { Octokit } from "@octokit/rest";
 import core from '@actions/core';
 
-const octokit = new Octokit({});
-
 //Function to fetch the comments from a PR
 async function fetchComments(owner, repo, issue_number) {
 
@@ -68,6 +66,10 @@ function isPassed(comment) {
 }
 
 try {
+
+    const octokit = new Octokit({
+        auth: core.getInput('github-token')
+    });
   
     const repoOwner = core.getInput('repo-owner');
     const repoName = core.getInput('repo-name');
@@ -77,11 +79,30 @@ try {
 
     const comment = await getLastComment(repoOwner, repoName, prNumber);
 
-    if (!isQAcomment(comment)) core.setOutput("qa-fail", "Not a QA comment");
-    if (!hasTestingResults(comment)) core.setOutput("qa-fail", "No testing results found");
+    if (!isQAcomment(comment)) return console.log(`Not a QA comment`);
+    if (!hasTestingResults(comment)) return console.log(`No testing results found`);
 
-    if (isPassed(comment)) core.setOutput("qa-result", "Passed");
-    else core.setOutput("qa-result", "Not Passed");    
+    if (!isPassed(comment)) {
+        console.log(`QA Reported as NOT PASSED`);
+        core.setFailed(`QA Reported as NOT PASSED`);
+        return;
+    }
+
+    //Now we can pass the action
+    console.log(`QA Reported as PASSED`);
+    core.setOutput("QA-Report", "PASSED");
+
+    //Now we want to add a label to the PR
+    const addLabel = await octokit.issues.addLabels({
+        owner: repoOwner,
+        repo: repoName,
+        issue_number: prNumber,
+        labels: [core.getInput('label-pass')]
+    });
+
+    console.log(`Label added to PR#${prNumber}`);
+
+    return;
 
 } catch (error) {
   core.setFailed(error.message);
