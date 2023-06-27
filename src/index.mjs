@@ -20,6 +20,7 @@ async function fetchComments(octo, owner, repo, issue_number) {
 
     } catch (error) {
 
+        core.setFailed(error);
         throw new Error(error);
 
     }
@@ -36,6 +37,7 @@ async function getLastComment(octo, owner, repo, issue_number) {
 
     } catch (error) {
 
+        core.setFailed(error);
         throw new Error(error);
 
     }
@@ -82,6 +84,8 @@ function isPassed(comment) {
 }
 
 try {
+
+    console.log(`Starting QA Report Action V0.5`)
 
     const octokit = new Octokit({
         auth: core.getInput('github-token')
