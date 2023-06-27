@@ -10,10 +10,10 @@ jobs:
       issues: write
     steps:
       - name: PR QA Comments Helper
-        uses: auroraisluna/zxvczVcvasfdadsf@tt7
+        uses: auroraisluna/zxvczVcvasfdadsf@tt8
         with:
           repo-owner: ${{ github.event.repository.owner.login }}
           repo-name: ${{ github.event.repository.name }}
           pr-number: ${{ github.event.issue.number }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           label-pass: 'QA-Passed'

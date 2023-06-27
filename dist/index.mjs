@@ -11117,10 +11117,12 @@ function isPassed(comment) {
 
 try {
 
-    console.log(`Starting QA Report Action V0.5`)
+    console.log(`Starting QA Report Action V0.8`)
+
+    const token = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token');
 
     const octokit = new _octokit_rest__WEBPACK_IMPORTED_MODULE_2__.Octokit({
-        auth: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token')
+        auth: token
     });
   
     const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-owner');

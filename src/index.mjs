@@ -85,10 +85,12 @@ function isPassed(comment) {
 
 try {
 
-    console.log(`Starting QA Report Action V0.7`)
+    console.log(`Starting QA Report Action V0.8`)
+
+    const token = core.getInput('github-token');
 
     const octokit = new Octokit({
-        auth: core.getInput('github-token')
+        auth: token
     });
   
     const repoOwner = core.getInput('repo-owner');
