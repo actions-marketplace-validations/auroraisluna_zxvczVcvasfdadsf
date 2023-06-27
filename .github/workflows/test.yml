@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: PR QA Comments Helper
-        uses: auroraisluna/zxvczVcvasfdadsf@tt6
+        uses: auroraisluna/zxvczVcvasfdadsf@tt7
         with:
           repo-owner: ${{ github.event.repository.owner.login }}
           repo-name: ${{ github.event.repository.name }}

@@ -11037,26 +11037,42 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 
-const octokit = new _octokit_rest__WEBPACK_IMPORTED_MODULE_2__.Octokit({});
-
 //Function to fetch the comments from a PR
-async function fetchComments(owner, repo, issue_number) {
+async function fetchComments(octo, owner, repo, issue_number) {
 
-    const comments = await octokit.issues.listComments({
-        owner: owner,
-        repo: repo,
-        issue_number: issue_number
-    });
+    try {
 
-    return comments.data;
+        const comments = await octo.issues.listComments({
+            owner: owner,
+            repo: repo,
+            issue_number: issue_number
+        });
+
+        return comments.data;
+
+    } catch (error) {
+
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error);
+        throw new Error(error);
+
+    }
 }
 
 //Function to retrieve the last comment from the PR
-async function getLastComment(owner, repo, issue_number) {
+async function getLastComment(octo, owner, repo, issue_number) {
 
-    const comments = await fetchComments(owner, repo, issue_number);
+    try {
 
-    return comments[comments.length - 1];
+        const comments = await fetchComments(octo, owner, repo, issue_number);
+
+        return comments[comments.length - 1];
+
+    } catch (error) {
+
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error);
+        throw new Error(error);
+
+    }
 
 }
 
@@ -11100,6 +11116,12 @@ function isPassed(comment) {
 }
 
 try {
+
+    console.log(`Starting QA Report Action V0.5`)
+
+    const octokit = new _octokit_rest__WEBPACK_IMPORTED_MODULE_2__.Octokit({
+        auth: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('github-token')
+    });
   
     const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-owner');
     const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-name');
@@ -11107,13 +11129,33 @@ try {
 
     console.log(`Fetching comments from ${repoOwner}/${repoName} PR#${prNumber}`);
 
-    const comment = await getLastComment(repoOwner, repoName, prNumber);
+    const comment = await getLastComment(octokit, repoOwner, repoName, prNumber);
 
-    if (!isQAcomment(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("qa-fail", "Not a QA comment");
-    if (!hasTestingResults(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("qa-fail", "No testing results found");
+    console.log(`Last comment by ${comment.user.login}`);
 
-    if (isPassed(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("qa-result", "Passed");
-    else _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("qa-result", "Not Passed");    
+    if (!isQAcomment(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`Not a QA comment`);
+    if (!hasTestingResults(comment)) _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`No testing results found`);
+
+    if (!isPassed(comment)) {
+        console.log(`QA Reported as NOT PASSED`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(`QA Reported as NOT PASSED`);
+    } else {
+
+        //Now we can pass the action
+        console.log(`QA Reported as PASSED`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_1__.setOutput("QA-Report", "PASSED");
+
+        //Now we want to add a label to the PR
+        const addLabel = await octokit.issues.addLabels({
+            owner: repoOwner,
+            repo: repoName,
+            issue_number: prNumber,
+            labels: [_actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('label-pass')]
+        });
+
+        console.log(`Label added to PR#${prNumber}`);
+
+    }
 
 } catch (error) {
   _actions_core__WEBPACK_IMPORTED_MODULE_1__.setFailed(error.message);

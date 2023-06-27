@@ -85,7 +85,7 @@ function isPassed(comment) {
 
 try {
 
-    console.log(`Starting QA Report Action V0.5`)
+    console.log(`Starting QA Report Action V0.7`)
 
     const octokit = new Octokit({
         auth: core.getInput('github-token')
@@ -101,30 +101,29 @@ try {
 
     console.log(`Last comment by ${comment.user.login}`);
 
-    if (!isQAcomment(comment)) return console.log(`Not a QA comment`);
-    if (!hasTestingResults(comment)) return console.log(`No testing results found`);
+    if (!isQAcomment(comment)) core.setFailed(`Not a QA comment`);
+    if (!hasTestingResults(comment)) core.setFailed(`No testing results found`);
 
     if (!isPassed(comment)) {
         console.log(`QA Reported as NOT PASSED`);
         core.setFailed(`QA Reported as NOT PASSED`);
-        return;
+    } else {
+
+        //Now we can pass the action
+        console.log(`QA Reported as PASSED`);
+        core.setOutput("QA-Report", "PASSED");
+
+        //Now we want to add a label to the PR
+        const addLabel = await octokit.issues.addLabels({
+            owner: repoOwner,
+            repo: repoName,
+            issue_number: prNumber,
+            labels: [core.getInput('label-pass')]
+        });
+
+        console.log(`Label added to PR#${prNumber}`);
+
     }
-
-    //Now we can pass the action
-    console.log(`QA Reported as PASSED`);
-    core.setOutput("QA-Report", "PASSED");
-
-    //Now we want to add a label to the PR
-    const addLabel = await octokit.issues.addLabels({
-        owner: repoOwner,
-        repo: repoName,
-        issue_number: prNumber,
-        labels: [core.getInput('label-pass')]
-    });
-
-    console.log(`Label added to PR#${prNumber}`);
-
-    return;
 
 } catch (error) {
   core.setFailed(error.message);
