@@ -1,4 +1,4 @@
-name: 'PR QA Comments Helper'
+name: 'PR QA Comments Helper 2'
 description: 'A GitHub Action to help with PR QA Comments and run actions on PRs'
 inputs:
   repo-owner: 

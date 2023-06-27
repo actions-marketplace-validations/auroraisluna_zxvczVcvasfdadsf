@@ -11099,12 +11099,13 @@ function isPassed(comment) {
 
 }
 
-
 try {
   
     const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-owner');
     const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('repo-name');
     const prNumber = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput('pr-number');
+
+    console.log(`Fetching comments from ${repoOwner}/${repoName} PR#${prNumber}`);
 
     const comment = await getLastComment(repoOwner, repoName, prNumber);
 
